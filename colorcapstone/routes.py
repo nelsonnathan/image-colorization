@@ -1,62 +1,18 @@
-from flask import Flask, render_template, request
-import boto3
+from colorcapstone import app
+from flask import render_template, request
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask.helpers import url_for
 from flask_wtf import FlaskForm
-from sqlalchemy.orm import backref
 from wtforms import StringField, PasswordField, BooleanField
 from wtforms.validators import InputRequired, Email, Length
 from werkzeug.utils import redirect, secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_bootstrap import Bootstrap
-import key_configuration as keys
-from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from flask_migrate import Migrate
-from models import db, Users
-from flask_nav import Nav
-from flask_nav.elements import Navbar, View
+from colorcapstone.models import db, Users
+from colorcapstone.aws import s3, BUCKET_NAME
 
-
-app = Flask(__name__)
-bootstrap = Bootstrap(app)
-nav = Nav(app)
-app.config['SECRET_KEY'] = keys.SECRET_KEY
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
-
-app.config['SECRET_KEY'] = keys.SECRET_KEY
-
-ENV = 'dev'
-
-if ENV == 'dev':
-    app.debug = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://postgres:{keys.PSQLPass}@localhost/colorization'
-
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db.init_app(app)
-migrate = Migrate(app, db)
-
-with app.app_context():
-    db.create_all()
-
-
-s3 = boto3.client('s3', aws_access_key_id=keys.ACCESS_KEY_ID,
-                  aws_secret_access_key=keys.ACCESS_SECRET_KEY)
-
-
-@nav.navigation()
-def mynavbar():
-    return Navbar(
-        'colorization',
-        View('Dashboard', 'dashboard'),
-        View('Sign In', 'login'),
-        View('Register', 'register'),
-        View('Logout', 'logout')
-    )
-
-
-BUCKET_NAME = 'colorization-capstone'
 
 class LoginForm(FlaskForm):
     username = StringField('username', validators=[
@@ -70,6 +26,8 @@ class RegisterForm(FlaskForm):
     username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
     password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=80)])
 
+with app.app_context():
+    db.create_all()
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -135,7 +93,3 @@ def dashboard():
 def logout():
     logout_user()
     return redirect(url_for('home'))
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
