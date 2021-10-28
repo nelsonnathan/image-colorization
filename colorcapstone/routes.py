@@ -75,9 +75,6 @@ def upload():
             new_upload = Uploads(url, None, user_id)
             db.session.add(new_upload)
             db.session.commit()
-            
-            img.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            flash('Uploaded successfully!')
     
     return render_template('photos.html', filename=file_mime_type, new_image=url)
 
