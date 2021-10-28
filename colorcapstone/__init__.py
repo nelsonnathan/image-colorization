@@ -8,9 +8,12 @@ import colorcapstone.key_configuration as keys
 
 app = Flask(__name__)
 
+UPLOAD_FOLDER = 'colorcapstone/static/pictures'
+
 app.config['SECRET_KEY'] = keys.SECRET_KEY
 app.config['SECRET_KEY'] = keys.SECRET_KEY
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 bootstrap = Bootstrap(app)
 
