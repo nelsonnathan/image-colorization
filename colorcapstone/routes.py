@@ -71,22 +71,16 @@ def upload():
                 Key=filename,
                 ExtraArgs={'ContentType': file_mime_type}
             )
-            new_image = filename
-            new_upload = Uploads(filename, None, user_id)
+            url = f'https://{BUCKET_NAME}.s3.us-west-1.amazonaws.com/{filename}'
+            new_upload = Uploads(url, None, user_id)
             db.session.add(new_upload)
             db.session.commit()
             
             img.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             flash('Uploaded successfully!')
     
-    return render_template('dashboard.html', filename=file_mime_type, new_image=new_image)
+    return render_template('photos.html', filename=file_mime_type, new_image=url)
 
-
-@app.route('/display/<filename>', methods=['POST', 'GET'])
-def display_image(filename):
-    # return redirect(url_for('static', filename='pictures/' + filename), code=301)
-    fresh = Uploads.query.filter_by(filename=id).first()
-    return 
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -129,3 +123,4 @@ def dashboard():
 def logout():
     logout_user()
     return redirect(url_for('home'))
+

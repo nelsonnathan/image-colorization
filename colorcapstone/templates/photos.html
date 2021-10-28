@@ -1,0 +1,19 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}
+Photo Library
+{% endblock %}
+
+{% block navbar %}
+{{ nav.mynavbar.render() }}
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        {% if new_image %}
+            <div>
+                <img src="{{ new_image }}" width="40%" height="60%">
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

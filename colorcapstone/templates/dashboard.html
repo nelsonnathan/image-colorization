@@ -18,10 +18,5 @@ Upload
           <button class="btn btn-lg btn-primary btn-block" type="submit">Upload</button>  
         </form>
       </div>
-      {% if filename %}
-        <div>
-          <img src="{{ url_for('display_image', filename=new_image) }}">
-        </div>
-      {% endif %}
     </div>
 {% endblock %}
