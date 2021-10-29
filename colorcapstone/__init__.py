@@ -31,9 +31,10 @@ def mynavbar():
     return Navbar(
         'colorization',
         View('Dashboard', 'dashboard'),
-        View('Sign In', 'login'),
+        View('Photo Library', 'photos'),
         View('Register', 'register'),
-        View('Logout', 'logout')
+        View('Sign In', 'login'),
+        View('Sign Out', 'logout')
     )
 
 from colorcapstone import routes

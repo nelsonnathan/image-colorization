@@ -1,6 +1,8 @@
 import os
 import boto3
 import mimetypes
+
+from boto3 import session
 from colorcapstone import app
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
@@ -53,8 +55,9 @@ def load_user(user_id):
 def home():
     return redirect(url_for('login'))
 
-@login_required
+
 @app.route('/', methods=['POST'])
+@login_required
 def upload():
     form = ImageUpload()
     user_id = current_user.id
@@ -71,13 +74,30 @@ def upload():
                 Key=filename,
                 ExtraArgs={'ContentType': file_mime_type}
             )
+
             url = f'https://{BUCKET_NAME}.s3.us-west-1.amazonaws.com/{filename}'
             new_upload = Uploads(url, None, user_id)
             db.session.add(new_upload)
             db.session.commit()
-    
-    return render_template('photos.html', filename=file_mime_type, new_image=url)
 
+    # return render_template('photos.html', filename=file_mime_type, new_image=url)
+    return redirect(url_for('photos'))
+
+
+@app.route('/photos', methods=['GET', 'POST'])
+@login_required
+def photos():
+    current = current_user.id
+    table = db.session.query(Uploads).all()
+    for item in table:
+        image_url = item.bw_image_url
+        no_image = item.color_image_url
+        user = item.user_id
+
+    if current == user:
+        return render_template('photos.html', new_image=image_url)
+
+    return redirect(url_for('dashboard'))
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -120,4 +140,3 @@ def dashboard():
 def logout():
     logout_user()
     return redirect(url_for('home'))
-
