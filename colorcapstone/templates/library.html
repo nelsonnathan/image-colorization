@@ -1,0 +1,24 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}
+Upload
+{% endblock %}
+
+{% block navbar %}
+    {% if current_user.is_authenticated %}
+        {{ nav.auth.render() }}
+    {% else %}
+        {{ nav.unauth.render() }}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        {% for image in new_image %}
+            <div>
+                <img src="{{ image[0] }}" width="40%" height="60%">
+                <a></a>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

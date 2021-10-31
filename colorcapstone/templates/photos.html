@@ -1,19 +1,21 @@
 {% extends "bootstrap/base.html" %}
 
+<link rel="stylsheet" href="{{ url_for('static', filename='styles.css') }}"> 
+
 {% block title %}
 Photo Library
 {% endblock %}
 
 {% block navbar %}
-{{ nav.mynavbar.render() }}
+    {% if current_user.is_authenticated %}
+        {{ nav.auth.render() }}
+    {% else %}
+        {{ nav.unauth.render() }}
+    {% endif %}
 {% endblock %}
 
 {% block content %}
     <div class="container">
-        {% if new_image %}
-            <div>
-                <img src="{{ new_image }}" width="40%" height="60%">
-            </div>
-        {% endif %}
+        <img src="{{ new_image }}" width="40%" height="60%">
     </div>
 {% endblock %}

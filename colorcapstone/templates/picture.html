@@ -6,7 +6,11 @@ Login
 {% endblock %}
 
 {% block navbar %}
-{{ nav.mynavbar.render() }}
+    {% if current_user.is_authenticated %}
+        {{ nav.auth.render() }}
+    {% else %}
+        {{ nav.unauth.render() }}
+    {% endif %}
 {% endblock %}
 
 {% block content %}
