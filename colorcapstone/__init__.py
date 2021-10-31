@@ -1,4 +1,3 @@
-from colorcapstone import routes
 from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_migrate import Migrate
@@ -54,3 +53,5 @@ def auth_navbar():
 
 
 nav.register_element('auth', auth_navbar)
+
+from colorcapstone import routes
