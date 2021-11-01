@@ -89,7 +89,7 @@ def photos():
     current = current_user.id
     table = db.session.query(Uploads.bw_image_url).filter(Uploads.user_id==current).all()
     new_photo = table[-1][0]
-    user = db.session.query(Uploads.user_id).first()
+    user = db.session.query(Uploads.user_id).filter(Uploads.user_id==current).first()
     user_id = user[0]
 
     if user_id == current:
@@ -102,13 +102,13 @@ def photos():
 def library():
     current = current_user.id
     table = db.session.query(Uploads.bw_image_url).filter(Uploads.user_id==current).all()
-    user = db.session.query(Uploads.user_id).first()
+    user = db.session.query(Uploads.user_id).filter(Uploads.user_id==current).first()
     user_id = user[0]
 
     if user_id == current:
         return render_template('library.html', new_image=table)
 
-    return redirect(url_for('login'))
+    return redirect(url_for('upload'))
 
 
 @app.route('/register', methods=['GET', 'POST'])
