@@ -1,6 +1,8 @@
 import os
 import boto3
 import mimetypes
+import requests
+
 
 from boto3 import session
 from colorcapstone import app
@@ -68,6 +70,7 @@ def submit():
             filename = secure_filename(img.filename)
             img.save(filename)
             file_mime_type = mimetypes.guess_type(filename)[0]
+
             s3.upload_file(
                 Bucket=BUCKET_NAME,
                 Filename=filename,
@@ -75,8 +78,19 @@ def submit():
                 ExtraArgs={'ContentType': file_mime_type}
             )
 
-            url = f'https://{BUCKET_NAME}.s3.us-west-1.amazonaws.com/{filename}'
-            new_upload = Uploads(url, None, user_id)
+            bw_url = f'https://{BUCKET_NAME}.s3.us-west-1.amazonaws.com/{filename}'
+            
+            r = requests.post(
+            "https://api.deepai.org/api/colorizer",
+            data={
+                'image': bw_url,
+            },
+            headers={'api-key': '526cc8b1-8b67-40ad-8e15-394675ec5291'}
+            )
+
+            color_url = r.json()['output_url']
+
+            new_upload = Uploads(bw_url, color_url, user_id)
             db.session.add(new_upload)
             db.session.commit()
 
@@ -87,13 +101,17 @@ def submit():
 @login_required
 def photos():
     current = current_user.id
-    table = db.session.query(Uploads.bw_image_url).filter(Uploads.user_id==current).all()
-    new_photo = table[-1][0]
+    table = db.session.query(Uploads.bw_image_url, Uploads.color_image_url).filter(Uploads.user_id==current).all()
+    url_index = [0, 1]
+    photos = table[-1]
+    photo_urls = [ photos[i] for i in url_index]
+    bw_url = photo_urls[0]
+    color_url = photo_urls[1]
     user = db.session.query(Uploads.user_id).filter(Uploads.user_id==current).first()
     user_id = user[0]
 
     if user_id == current:
-        return render_template('photos.html', new_image=new_photo)
+        return render_template('photos.html', bw_image=bw_url, color_image=color_url)
 
     return redirect(url_for('upload'))
 
@@ -101,7 +119,7 @@ def photos():
 @login_required
 def library():
     current = current_user.id
-    table = db.session.query(Uploads.bw_image_url).filter(Uploads.user_id==current).all()
+    table = db.session.query(Uploads.bw_image_url, Uploads.color_image_url).filter(Uploads.user_id==current).all()
     user = db.session.query(Uploads.user_id).filter(Uploads.user_id==current).first()
     user_id = user[0]
 
