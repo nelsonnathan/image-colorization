@@ -43,7 +43,7 @@ def auth_navbar():
     navbar.items.append(
         Subgroup('Profile',
                  View('Upload', 'upload'),
-                 View('New Upload', 'photos'),
+                 View('Current Comparison', 'photos'),
                  View('Photo Library', 'library')
                  )
     ),

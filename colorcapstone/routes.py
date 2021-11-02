@@ -102,13 +102,14 @@ def submit():
 def photos():
     current = current_user.id
     table = db.session.query(Uploads.bw_image_url, Uploads.color_image_url).filter(Uploads.user_id==current).all()
+    user = db.session.query(Uploads.user_id).filter(Uploads.user_id==current).first()
+    user_id = user[0]
+
     url_index = [0, 1]
     photos = table[-1]
     photo_urls = [ photos[i] for i in url_index]
     bw_url = photo_urls[0]
     color_url = photo_urls[1]
-    user = db.session.query(Uploads.user_id).filter(Uploads.user_id==current).first()
-    user_id = user[0]
 
     if user_id == current:
         return render_template('photos.html', bw_image=bw_url, color_image=color_url)
@@ -123,8 +124,16 @@ def library():
     user = db.session.query(Uploads.user_id).filter(Uploads.user_id==current).first()
     user_id = user[0]
 
+    url_index = [0, 1]
+    photos = table[-1]
+    photo_urls = [ photos[i] for i in url_index]
+    bw_url = photo_urls[0]
+    color_url = photo_urls[1]
+
+    url_dict = {'Original':bw_url, 'Transformed':color_url}
+
     if user_id == current:
-        return render_template('library.html', new_image=table)
+        return render_template('library.html', photos=url_dict)
 
     return redirect(url_for('upload'))
 

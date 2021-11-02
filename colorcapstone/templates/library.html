@@ -14,10 +14,9 @@ Upload
 
 {% block content %}
     <div class="container">
-        {% for image in new_image %}
+        {% for value in photos.values() %}
             <div>
-                <img src="{{ image[0] }}" width="40%" height="60%">
-                <a></a>
+                <img src="{{ value }}" width="40%" height="60%">
             </div>
         {% endfor %}
     </div>
