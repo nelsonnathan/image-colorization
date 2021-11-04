@@ -1,11 +1,10 @@
-import os
-import boto3
 import mimetypes
 import requests
 
-
 from boto3 import session
-from colorcapstone import app
+from PIL import Image
+from sqlalchemy.sql.operators import exists
+from colorcapstone import app, jsonify, Cache
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask.helpers import url_for
@@ -17,10 +16,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from colorcapstone.models import db, Users, Uploads
 from colorcapstone.aws import s3, BUCKET_NAME
 
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+url_dict = {}
 
 class LoginForm(FlaskForm):
     username = StringField('username', validators=[
@@ -67,7 +68,7 @@ def submit():
     if request.method == 'POST':
         img = request.files['file']
         if img:
-            filename = secure_filename(img.filename)
+            filename = secure_filename(img.filename)    
             img.save(filename)
             file_mime_type = mimetypes.guess_type(filename)[0]
 
@@ -90,19 +91,44 @@ def submit():
 
             color_url = r.json()['output_url']
 
-            new_upload = Uploads(bw_url, color_url, user_id)
+            sr = requests.post(
+            "https://api.deepai.org/api/torch-srgan",
+            data={
+                'image': color_url,
+            },
+            headers={'api-key': '526cc8b1-8b67-40ad-8e15-394675ec5291'}
+            )
+
+            print(sr.json())
+
+            upscaled_url = sr.json()['output_url']
+
+            new_upload = Uploads(bw_url, upscaled_url, user_id)
             db.session.add(new_upload)
             db.session.commit()
+
 
     return redirect(url_for('photos'))
 
 
+@app.route('/delete/<int:id>', methods=['GET'])
+@login_required
+def delete(id):
+    Uploads.query.filter(Uploads.id == id).delete()
+    db.session.commit()
+    return jsonify({'hello': 'world'})
+
+    
 @app.route('/photos', methods=['GET', 'POST'])
 @login_required
 def photos():
     current = current_user.id
     table = db.session.query(Uploads.bw_image_url, Uploads.color_image_url).filter(Uploads.user_id==current).all()
     user = db.session.query(Uploads.user_id).filter(Uploads.user_id==current).first()
+
+    if user == None:
+        return redirect(url_for('upload'))
+    
     user_id = user[0]
 
     url_index = [0, 1]
@@ -113,6 +139,7 @@ def photos():
 
     if user_id == current:
         return render_template('photos.html', bw_image=bw_url, color_image=color_url)
+    
 
     return redirect(url_for('upload'))
 
@@ -120,8 +147,14 @@ def photos():
 @login_required
 def library():
     current = current_user.id
-    table = db.session.query(Uploads.bw_image_url, Uploads.color_image_url).filter(Uploads.user_id==current).all()
+    table = db.session.query(Uploads.bw_image_url, Uploads.color_image_url, Uploads.id).filter(Uploads.user_id==current).all()
     user = db.session.query(Uploads.user_id).filter(Uploads.user_id==current).first()
+
+    if user == None:
+        url_dict.clear()
+        print(url_dict)
+        return redirect(url_for('upload'))
+
     user_id = user[0]
 
     url_index = [0, 1]
@@ -130,12 +163,19 @@ def library():
     bw_url = photo_urls[0]
     color_url = photo_urls[1]
 
-    url_dict = {'Original':bw_url, 'Transformed':color_url}
+    url_dict[bw_url] = bw_url
+    url_dict[color_url] = color_url
+
+    photo_id = db.session.query(Uploads.id).all()
+    current_photo_id = photo_id[-1][0]
 
     if user_id == current:
-        return render_template('library.html', photos=url_dict)
+        print('The url dictionary variable:\n', url_dict)
+        print('The current photo id variable:\n', current_photo_id)
+        return render_template('library.html', photos=table, id=current_photo_id)
 
     return redirect(url_for('upload'))
+
 
 
 @app.route('/register', methods=['GET', 'POST'])

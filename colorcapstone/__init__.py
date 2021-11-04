@@ -1,10 +1,12 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_bootstrap import Bootstrap
 from flask_migrate import Migrate
 from flask_nav.elements import Navbar, Separator, Subgroup, View
 from flask_nav import Nav
 from colorcapstone.models import db
+from flask_caching import Cache
 import colorcapstone.key_configuration as keys
+
 
 app = Flask(__name__)
 
@@ -25,7 +27,6 @@ db.init_app(app)
 migrate = Migrate(app, db)
 
 nav = Nav(app)
-
 
 def unauth_navbar():
     navbar = Navbar(title='colorization')

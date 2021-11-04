@@ -1,23 +1,45 @@
-{% extends "bootstrap/base.html" %}
+{% extends "bootstrap/base.html" %} 
 
-{% block title %}
-Upload
-{% endblock %}
+{% block title %} 
+Upload 
+{% endblock %} 
 
-{% block navbar %}
-    {% if current_user.is_authenticated %}
+{% block navbar %} 
+    {% if current_user.is_authenticated %} 
         {{ nav.auth.render() }}
-    {% else %}
-        {{ nav.unauth.render() }}
-    {% endif %}
-{% endblock %}
+    {% else %} 
+        {{ nav.unauth.render() }} 
+    {% endif %} 
+{% endblock %} 
 
 {% block content %}
-    <div class="container">
-        {% for value in photos.values() %}
-            <div>
-                <img src="{{ value }}" width="40%" height="60%">
-            </div>
-        {% endfor %}
-    </div>
+
+<div class="container">
+    {% for value in photos %}
+        <div>
+            <img id="bw_id{{ value[2] }}" src="{{ value[0] }}" width="40%" height="60%" />
+            <img id="color_id{{ value[2] }}" src="{{ value[1] }}" width="40%" height="60%" />
+            <button id="upload_button{{ value[2] }}" onclick="delete_upload('{{ value[2] }}')">Delete</button> 
+        </div>
+    {% endfor %}
+</div>
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script type="text/javascript">
+    function delete_upload(id){
+      $.ajax({
+          url: 'http://127.0.0.1:5000/delete/' + id,
+          method: 'GET',
+          dataType: 'text',
+          success: function() {
+              $('#bw_id' + id).remove();
+              $('#color_id' + id).remove();
+              $('#upload_button' + id).remove();
+
+          }
+        }
+      )
+    }
+</script>
+
 {% endblock %}
